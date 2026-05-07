@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ERP Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body style="opacity:0; transition:0.5s;">
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h4>🎓 ERP</h4>
+    <a href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="/add/"><i class="bi bi-person-plus"></i> Add Student</a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Navbar -->
+    <nav class="navbar bg-white shadow p-3 mb-4 d-flex justify-content-between">
+        <h5>Admin Dashboard</h5>
+        <span>Welcome Admin 👋</span>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+</div>
+
+<!-- JS -->
+<script src="{% static 'js/script.js' %}"></script>
+
+</body>
+</html>

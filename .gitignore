@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+/staticfiles/
+media/
+
+# VS Code
+.vscode/
+
+# Virtual environment
+env/
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# Pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
