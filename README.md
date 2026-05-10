@@ -20,32 +20,27 @@ python manage.py runserver
 
 ## Deployment
 
-This project is configured for Docker-based deployment, including Vercel.
+This project is configured for serverless Python deployment on Vercel.
 
-### Files added for deployment
+### Deploy on Vercel
 
-- `requirements.txt`
-- `Dockerfile`
-- `vercel.json`
-- `.dockerignore`
+1. Go to https://vercel.com/new and import the `student-database` repository.
+2. Add environment variables:
+   - `DJANGO_SECRET_KEY` - random secure string
+   - `DEBUG=False`
+   - `DJANGO_ALLOWED_HOSTS` - your Vercel domain (e.g., `your-app.vercel.app`)
+3. Click **Deploy** and wait for completion.
 
-### Production environment variables
+### Files used for deployment
 
-Set these in your deployment platform:
-
-- `DJANGO_SECRET_KEY`
-- `DEBUG=False`
-- `DJANGO_ALLOWED_HOSTS` (for example: `your-app.vercel.app`)
-- `DATABASE_URL` (recommended for production; otherwise SQLite is used locally)
-
-### Deploy on Vercel with Docker
-
-1. Connect the GitHub repo to Vercel.
-2. Ensure the branch is `main`.
-3. Add environment variables via the Vercel dashboard.
-4. Deploy.
+- `api/index.py` - serverless entry point
+- `vercel.json` - Vercel configuration
+- `requirements.txt` - dependencies
 
 ## Notes
 
-- Fixed a static file naming issue (`sctipt.js` renamed to `script.js`).
+- Fixed static file naming issue (`sctipt.js` → `script.js`).
+- Uses WhiteNoise for static file serving.
+- SQLite database resets on redeploy; use `DATABASE_URL` for persistence.
+- Added production-ready settings for Vercel.
 - Added production-ready static file support with WhiteNoise.
