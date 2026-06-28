@@ -25,16 +25,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-e22hrkpq_isklqt1ykra_6h_(gnfiyat!i!7+2)n#9h@-ccgle')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 # ALLOWED_HOSTS configuration
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1').split()
+
+# Authentication redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
+
 if not DEBUG:
-    # Add Vercel domains
+    # Ensure Vercel domains are allowed if the app runs in a Vercel deployment.
     ALLOWED_HOSTS.extend([
         '.vercel.app',
         '.now.sh',
+        '.trycloudflare.com',
     ])
+
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition

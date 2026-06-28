@@ -16,7 +16,7 @@
     <div class="col-md-4">
         <div class="card shadow p-4 text-center">
             <h6>Courses</h6>
-            <h2>5</h2>
+            <h2>{{ course_count }}</h2>
         </div>
     </div>
 
@@ -46,14 +46,20 @@
             </thead>
 
             <tbody>
-                {% for student in students %}
-                <tr>
-                    <td>{{ student.name }}</td>
-                    <td>{{ student.roll_number }}</td>
-                    <td>{{ student.email }}</td>
-                    <td>{{ student.course }}</td>
-                </tr>
-                {% endfor %}
+                {% if students %}
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.roll_number }}</td>
+                        <td>{{ student.email }}</td>
+                        <td>{{ student.course }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-muted py-4">No students found yet. Add a student from the sidebar.</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>

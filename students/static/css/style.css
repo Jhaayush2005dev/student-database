@@ -27,9 +27,11 @@ body {
     transition: 0.3s;
 }
 
-.sidebar a:hover {
+.sidebar a:hover,
+.sidebar a.active {
     background: #334155;
     transform: translateX(5px);
+    color: #ffffff;
 }
 
 /* Main Content */
