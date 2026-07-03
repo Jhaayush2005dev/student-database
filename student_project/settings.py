@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 import dj_database_url
 
+from .bootstrap import get_database_path
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -94,7 +96,7 @@ WSGI_APPLICATION = 'student_project.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        default=f'sqlite:///{get_database_path()}',
         conn_max_age=600,
     )
 }
@@ -143,9 +145,12 @@ else:
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Vercel settings
-if 'vercel' in ALLOWED_HOSTS:
+if os.getenv('VERCEL') or os.getenv('VERCEL_ENV'):
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    CSRF_TRUSTED_ORIGINS = [
+        'https://studentproject-b5a5sw84f-jhaayush2005devs-projects.vercel.app',
+    ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
