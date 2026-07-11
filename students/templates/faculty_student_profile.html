@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card shadow p-4 bg-white rounded">
+    <h3 class="fw-bold mb-3">Student Profile</h3>
+    <p class="text-muted">Details and performance for the selected student.</p>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-6">
+            <label class="text-muted small">Student Name</label>
+            <p class="fs-5 fw-semibold">{{ student.name }}</p>
+        </div>
+        <div class="col-md-6">
+            <label class="text-muted small">Roll Number</label>
+            <p class="fs-5 fw-semibold">{{ student.roll_number }}</p>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-muted">Subject</label>
+            <select class="form-select" id="subjectSelect" onchange="onSelectionChange()">
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject and subject.id == selected_subject.id %}selected{% endif %}>{{ subject.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-muted">Semester</label>
+            <select class="form-select" id="semesterSelect" onchange="onSelectionChange()">
+                {% for semester in semesters %}
+                    <option value="{{ semester }}" {% if selected_semester == semester %}selected{% endif %}>{{ semester }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-muted">Year</label>
+            <select class="form-select" id="yearSelect" onchange="onSelectionChange()">
+                {% for year in years %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="text-muted small">Marks</label>
+            <p class="fs-5 fw-semibold">{% if ledger %}{{ ledger.obtained_marks }}{% else %}<span class="text-muted">No grade recorded</span>{% endif %}</p>
+        </div>
+        <div class="col-md-6">
+            <label class="text-muted small">Status</label>
+            {% if ledger %}
+                <span class="badge {% if ledger.status == 'F' %}bg-success{% else %}bg-secondary{% endif %}">{{ ledger.get_status_display }}</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Not submitted</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'faculty_edit_student' student.pk %}" class="btn btn-primary">Edit Student</a>
+        <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Back</a>
+    </div>
+</div>
+
+<script>
+function onSelectionChange() {
+    const studentId = {{ student.id }};
+    const subjectId = document.getElementById('subjectSelect').value;
+    const semester = document.getElementById('semesterSelect').value;
+    const year = document.getElementById('yearSelect').value;
+    const query = new URLSearchParams({subject: subjectId, semester, year});
+    window.location.search = query.toString();
+}
+</script>
+{% endblock %}

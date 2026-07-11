@@ -35,18 +35,31 @@
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="id_course" class="form-label">Course</label>
-                <input type="text" name="course" id="id_course" class="form-control" required>
+                <label for="id_course" class="form-label">Subject</label>
+                {% if role == 'faculty' and selected_subject %}
+                    <input type="text" name="course" id="id_course" class="form-control" value="{{ selected_subject }}" readonly>
+                    <div class="text-muted small">Subject locked to the selected faculty subject.</div>
+                {% else %}
+                    <input type="text" name="course" id="id_course" class="form-control" required>
+                {% endif %}
                 {% if form.course.errors %}
                     <div class="text-danger small">{{ form.course.errors|striptags }}</div>
                 {% endif %}
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="id_date_of_birth" class="form-label">Date of Birth</label>
-                <input type="date" name="date_of_birth" id="id_date_of_birth" class="form-control" required>
-                {% if form.date_of_birth.errors %}
-                    <div class="text-danger small">{{ form.date_of_birth.errors|striptags }}</div>
+                <label for="id_phone_number" class="form-label">Phone Number</label>
+                <input type="text" name="phone_number" id="id_phone_number" class="form-control">
+                {% if form.phone_number.errors %}
+                    <div class="text-danger small">{{ form.phone_number.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="id_branch" class="form-label">Branch</label>
+                <input type="text" name="branch" id="id_branch" class="form-control">
+                {% if form.branch.errors %}
+                    <div class="text-danger small">{{ form.branch.errors|striptags }}</div>
                 {% endif %}
             </div>
         </div>

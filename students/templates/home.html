@@ -2,7 +2,15 @@
 
 {% block content %}
 
+{% if role == 'student' %}
+<h3 class="mb-4">My Student Portal</h3>
+<p class="text-muted">Here you can review your personal details and academic marks.</p>
+{% elif role == 'faculty' %}
+<h3 class="mb-4">Faculty Portal</h3>
+<p class="text-muted">Welcome. Select a subject to filter student records, or add a new subject.</p>
+{% else %}
 <h3 class="mb-4">Dashboard</h3>
+{% endif %}
 
 <div class="row mb-4">
 
@@ -13,6 +21,40 @@
         </div>
     </div>
 
+    {% if role == 'faculty' %}
+    <div class="col-md-4">
+        <div class="card shadow p-4 text-center">
+            <h6>Subjects</h6>
+            {% if subjects %}
+                <ul class="list-unstyled mb-0">
+                    {% for subject in subjects %}
+                        <li>
+                            <a href="?subject={{ subject }}" class="text-decoration-none{% if selected_subject == subject %} fw-bold{% endif %}">{{ subject }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <h5>No subjects assigned</h5>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow p-4 text-center">
+            <h6>Subject Actions</h6>
+            <p>
+                <a class="btn btn-sm btn-primary mb-2" href="{% url 'add_student' %}{% if selected_subject %}?subject={{ selected_subject }}{% endif %}">Add student to {{ selected_subject|default:'selected subject' }}</a>
+            </p>
+            <form method="post" action="{% url 'add_subject' %}">
+                {% csrf_token %}
+                <div class="input-group input-group-sm">
+                    <input type="text" name="new_subject" class="form-control" placeholder="New subject">
+                    <button class="btn btn-secondary" type="submit">Add Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
     <div class="col-md-4">
         <div class="card shadow p-4 text-center">
             <h6>Courses</h6>
@@ -26,6 +68,7 @@
             <h2>12</h2>
         </div>
     </div>
+    {% endif %}
 
 </div>
 
@@ -41,7 +84,9 @@
                     <th>Name</th>
                     <th>Roll</th>
                     <th>Email</th>
-                    <th>Course</th>
+                    <th>Subject</th>
+                    {% if role == 'student' %}<th>Marks</th>{% endif %}
+                    {% if role == 'faculty' %}<th>Actions</th>{% endif %}
                 </tr>
             </thead>
 
@@ -49,15 +94,27 @@
                 {% if students %}
                     {% for student in students %}
                     <tr>
-                        <td>{{ student.name }}</td>
+                        <td>
+                            {% if role == 'faculty' %}
+                                <a href="{% url 'faculty_student_profile' student.pk %}">{{ student.name }}</a>
+                            {% else %}
+                                {{ student.name }}
+                            {% endif %}
+                        </td>
                         <td>{{ student.roll_number }}</td>
                         <td>{{ student.email }}</td>
                         <td>{{ student.course }}</td>
+                        {% if role == 'student' %}
+                            <td>{{ student.marks }}</td>
+                        {% endif %}
+                        {% if role == 'faculty' %}
+                            <td><a class="btn btn-sm btn-outline-primary" href="{% url 'faculty_edit_student' student.pk %}">Edit</a></td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" class="text-muted py-4">No students found yet. Add a student from the sidebar.</td>
+                        <td colspan="6" class="text-muted py-4">No students found yet. Add a student from the sidebar.</td>
                     </tr>
                 {% endif %}
             </tbody>

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow p-4 bg-white rounded">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">✍️ Marks Compilation Ledger</h3>
+            <p class="text-muted mb-0">Choose a subject, semester, and year, then enter obtained marks for each student.</p>
+        </div>
+        <div>
+            <button id="saveDraftBtn" class="btn btn-outline-primary me-2">Save Drafts</button>
+            <button id="finalizeBtn" class="btn btn-danger">Final Submit to ERP</button>
+        </div>
+    </div>
+
+    <div id="ledgerMessage" class="mb-3"></div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label class="form-label text-muted">Subject</label>
+            <select id="subjectSelect" class="form-select">
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject and subject.id == selected_subject.id %}selected{% endif %}>
+                        {{ subject.course_code }} - {{ subject.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-muted">Semester</label>
+            <select id="semesterSelect" class="form-select">
+                {% for semester in semesters %}
+                    <option value="{{ semester }}" {% if selected_semester == semester %}selected{% endif %}>{{ semester }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-muted">Year</label>
+            <select id="yearSelect" class="form-select">
+                {% for year in years %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    {% csrf_token %}
+
+    {% if student_rows %}
+    <div class="table-responsive shadow-sm rounded overflow-hidden">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Roll No</th>
+                    <th scope="col">Student Name</th>
+                    <th scope="col">Max Marks</th>
+                    <th scope="col">Marks Obtained</th>
+                    <th scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in student_rows %}
+                <tr class="ledger-row" data-student-id="{{ row.student.id }}" data-subject-id="{{ selected_subject.id }}" data-exam-id="{{ selected_exam.id }}">
+                    <td>{{ row.student.roll_number }}</td>
+                    <td>{{ row.student.name }}</td>
+                    <td>{{ selected_subject.max_marks }}</td>
+                    <td>
+                        <input type="number" min="0" max="{{ selected_subject.max_marks }}" class="form-control marks-input" value="{% if row.ledger %}{{ row.ledger.obtained_marks }}{% endif %}" {% if row.ledger and row.ledger.status == 'F' %}readonly{% endif %}>
+                        <div class="invalid-feedback"></div>
+                    </td>
+                    <td>
+                        {% if row.ledger and row.ledger.status == 'F' %}
+                            <span class="badge bg-success">Finalized</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{% if row.ledger %}{{ row.ledger.get_status_display }}{% else %}Draft{% endif %}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No students assigned to this subject yet.</div>
+    {% endif %}
+</div>
+
+<script>
+const subjectSelect = document.getElementById('subjectSelect');
+const semesterSelect = document.getElementById('semesterSelect');
+const yearSelect = document.getElementById('yearSelect');
+const saveDraftBtn = document.getElementById('saveDraftBtn');
+const finalizeBtn = document.getElementById('finalizeBtn');
+const ledgerMessage = document.getElementById('ledgerMessage');
+const selectedExamId = '{{ selected_exam.id }}';
+
+function setLedgerMessage(text, type = 'info') {
+    ledgerMessage.innerHTML = `<div class="alert alert-${type} py-2">${text}</div>`;
+}
+
+function clearLedgerMessage(delay = 3000) {
+    setTimeout(() => {
+        ledgerMessage.innerHTML = '';
+    }, delay);
+}
+
+async function saveLedgerRow(row) {
+    const input = row.querySelector('.marks-input');
+    const feedback = input.nextElementSibling;
+    const studentId = row.dataset.studentId;
+    const subjectId = row.dataset.subjectId;
+    const examId = row.dataset.examId;
+    const rawValue = input.value.trim();
+    const maxMarks = parseInt(row.querySelector('td:nth-child(3)').innerText.trim(), 10);
+
+    if (rawValue === '') {
+        feedback.textContent = 'Input cannot be blank.';
+        input.classList.add('is-invalid');
+        return {success: false};
+    }
+
+    const value = Number(rawValue);
+    if (!Number.isInteger(value) || value < 0 || value > maxMarks) {
+        feedback.textContent = `Marks must be a whole number between 0 and ${maxMarks}.`;
+        input.classList.add('is-invalid');
+        return {success: false};
+    }
+
+    feedback.textContent = '';
+    input.classList.remove('is-invalid');
+
+    const formData = new FormData();
+    formData.append('student_id', studentId);
+    formData.append('subject_id', subjectId);
+    formData.append('exam_id', examId);
+    formData.append('obtained_marks', value);
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+    if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken);
+
+    const response = await fetch('{% url "save_grade" %}', {
+        method: 'POST',
+        body: formData,
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        feedback.textContent = data.error || 'Unable to save marks.';
+        input.classList.add('is-invalid');
+        return {success: false};
+    }
+
+    feedback.textContent = 'Saved as draft.';
+    feedback.classList.remove('text-danger');
+    feedback.classList.add('text-success');
+    row.querySelector('span.badge').innerText = data.status;
+    clearLedgerMessage();
+    return {success: true};
+}
+
+function reloadLedger() {
+    const subject = subjectSelect.value;
+    const semester = semesterSelect.value;
+    const year = yearSelect.value;
+    const query = new URLSearchParams({subject, semester, year});
+    window.location.search = query.toString();
+}
+
+subjectSelect.addEventListener('change', reloadLedger);
+semesterSelect.addEventListener('change', reloadLedger);
+yearSelect.addEventListener('change', reloadLedger);
+
+const inputs = document.querySelectorAll('.marks-input');
+inputs.forEach(input => {
+    input.addEventListener('blur', async () => {
+        const row = input.closest('.ledger-row');
+        await saveLedgerRow(row);
+    });
+});
+
+saveDraftBtn.addEventListener('click', async () => {
+    const rows = Array.from(document.querySelectorAll('.ledger-row'));
+    const results = await Promise.all(rows.map(row => saveLedgerRow(row)));
+    const successCount = results.filter(result => result.success).length;
+    const attemptCount = results.length;
+
+    if (attemptCount === 0) {
+        setLedgerMessage('No rows available to save.', 'warning');
+        return;
+    }
+
+    setLedgerMessage(`${successCount} of ${attemptCount} rows saved as drafts.`, 'success');
+});
+
+finalizeBtn.addEventListener('click', async () => {
+    const formData = new FormData();
+    formData.append('subject_id', subjectSelect.value);
+    formData.append('exam_id', selectedExamId);
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+    if (csrfToken) formData.append('csrfmiddlewaretoken', csrfToken);
+
+    const response = await fetch('{% url "finalize_grades" %}', {
+        method: 'POST',
+        body: formData,
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        setLedgerMessage(data.error || 'Unable to finalize grades.', 'danger');
+        return;
+    }
+
+    setLedgerMessage('Grades finalized and locked successfully.', 'success');
+    setTimeout(() => reloadLedger(), 1200);
+});
+</script>
+{% endblock %}

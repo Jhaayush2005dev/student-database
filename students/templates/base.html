@@ -4,37 +4,45 @@
 <head>
     <title>ERP Dashboard</title>
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
-<body style="opacity:0; transition:0.5s;">
+<body style="opacity:1; transition:0.5s;">
 
 {% if user.is_authenticated %}
-<!-- Sidebar -->
 <div class="sidebar">
     <h4>🎓 ERP</h4>
-    <a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
-    <a href="/add/" class="{% if request.path == '/add/' %}active{% endif %}"><i class="bi bi-person-plus"></i> Add Student</a>
+    <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    
+    {% if role == 'admin' %}
+        <a href="{% url 'add_student' %}" class="{% if request.path == '/add/' %}active{% endif %}"><i class="bi bi-person-plus"></i> Add Student</a>
+        <a href="#settings"><i class="bi bi-gear"></i> System Settings</a>
+    {% endif %}
+
+    {% if role == 'admin' or role == 'faculty' %}
+        <a href="{% url 'attendance' %}" class="{% if request.path == '/attendance/' %}active{% endif %}"><i class="bi bi-calendar-check"></i> Attendance Tracker</a>
+        <a href="{% url 'enter_grades' %}" class="{% if request.path == '/enter-grades/' %}active{% endif %}"><i class="bi bi-journal-check"></i> Enter Grades</a>
+    {% endif %}
+
+    {% if role == 'student' %}
+        <a href="{% url 'profile' %}" class="{% if request.path == '/profile/' %}active{% endif %}"><i class="bi bi-person-circle"></i> My Profile</a>
+        <a href="{% url 'academic_report' %}" class="{% if request.path == '/academic-report/' %}active{% endif %}"><i class="bi bi-award"></i> Academic Report</a>
+    {% endif %}
 </div>
 
-<!-- Main Content -->
 <div class="main-content">
 
-    <!-- Navbar -->
     <nav class="navbar bg-white shadow p-3 mb-4 d-flex justify-content-between">
-        <h5>Admin Dashboard</h5>
+        <h5 class="fw-bold text-dark">{{ role|title }} Dashboard</h5>
         <div>
-            <span>Welcome {{ request.user.username }} 👋</span>
+            <span>Welcome <strong>{{ request.user.username }}</strong> 👋</span>
             <form method="post" action="{% url 'logout' %}" class="d-inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-secondary ms-3">Logout</button>
+                <button type="submit" class="btn btn-sm btn-outline-danger ms-3">Logout</button>
             </form>
         </div>
     </nav>
@@ -71,7 +79,6 @@
 </div>
 {% endif %}
 
-<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{% static 'js/script.js' %}"></script>
 
